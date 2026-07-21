@@ -350,15 +350,15 @@
     <div class="header">
         <div class="logo">🏝️ OBLU SELECT Sangeli</div>
         <div class="subtitle">Horizontal Matrix Sheet System</div>
-        <div class="version-badge">v4.0.3 | 2026-07-21</div>
+        <div class="version-badge">v4.0.4 | 2026-07-21</div>
         
         <!-- ============================================
         HEADER ACTIONS WITH DROPDOWN
         ============================================ -->
         <div class="header-actions">
             <!-- Install Button -->
-            <button id="universal-install-btn" style="display:none; background: #00cc00; color: #0a0a0a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 0 10px rgba(0,204,0,0.6);">
-                📥 Install
+            <button id="universal-install-btn" style="display:inline-block; background: #00cc00; color: #0a0a0a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 0 10px rgba(0,204,0,0.6);">
+                📥 Install App
             </button>
             
             <!-- Dropdown Container -->
@@ -563,9 +563,9 @@
         // ============================================
         // APP VERSION - UPDATE ON EVERY RELEASE
         // ============================================
-        const APP_VERSION = 'v4.0.3';
+        const APP_VERSION = 'v4.0.4';
         const BUILD_DATE = '2026-07-21';
-        const BUILD_TIME = '14:00';
+        const BUILD_TIME = '16:00';
 
         // ============================================
         // FORCE UPDATE - Clears cache if version changed
@@ -632,6 +632,64 @@
                 console.log('✅ App is up to date (version:', APP_VERSION, ')');
             }
         })();
+
+        // ============================================
+        // PWA INSTALL - FIXED
+        // ============================================
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('universal-install-btn');
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+
+        // Hide install button if already installed
+        if (isStandalone) {
+            installBtn.style.display = 'none';
+            console.log('✅ App is already installed (standalone mode)');
+        }
+
+        // iOS - show install instructions
+        if (isIOS && !isStandalone) {
+            installBtn.textContent = '📱 Add to Home Screen';
+            installBtn.onclick = function() {
+                alert("🍏 To install on iPhone / iOS:\n1. Tap the Safari 'Share' button (square icon with an up arrow at the bottom menu).\n2. Scroll down the panel and select 'Add to Home Screen'.");
+            };
+            console.log('📱 iOS device detected - showing Add to Home Screen button');
+        }
+
+        // Android - beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'inline-block';
+            installBtn.textContent = '📥 Install App';
+            installBtn.onclick = handleInstallClick;
+            console.log('📥 Install prompt available');
+        });
+
+        // App installed event
+        window.addEventListener('appinstalled', () => {
+            deferredPrompt = null;
+            installBtn.style.display = 'none';
+            showMessage("🎉 App Installed Successfully!", "success");
+            console.log('🎉 App installed successfully');
+        });
+
+        // Handle install click
+        async function handleInstallClick() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                if (outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                    showMessage("🎉 App Installed!", "success");
+                } else {
+                    showMessage("Installation cancelled", "error");
+                }
+            } else {
+                showMessage("Use browser menu to install", "success");
+            }
+        }
 
         // ============================================
         // DROPDOWN FUNCTIONS
@@ -803,7 +861,6 @@
         let currentCategoryFilter = 'all'; 
         let searchTimeout = null;
         let noteSuggestions = [];
-        let deferredPrompt = null;
         
         const villaNames = { 
             'water-villa-1st': 'Water Villa 1st Pantry', 
@@ -815,9 +872,54 @@
         document.addEventListener('DOMContentLoaded', function() { 
             loadInitialData(); 
             initializeUI(); 
-            initServiceWorkerAndPWA();
+            initServiceWorker();
             loadNoteSuggestions();
         });
+
+        // ============================================
+        // SERVICE WORKER
+        // ============================================
+        function initServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/Hk_amenities_v3/sw.js?v=' + APP_VERSION)
+                    .then(reg => {
+                        console.log('✅ Service Worker registered:', reg.scope);
+                        
+                        reg.addEventListener('updatefound', () => {
+                            console.log('🔄 New Service Worker found!');
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('🔄 New SW installed, reloading...');
+                                    showMessage('🔄 App update available!', 'success');
+                                    setTimeout(() => {
+                                        window.location.reload(true);
+                                    }, 2000);
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => {
+                        console.log('❌ Service Worker registration failed:', err);
+                    });
+                
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        refreshing = true;
+                        console.log('🔄 Service Worker updated!');
+                        window.location.reload();
+                    }
+                });
+                
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'SW_UPDATED') {
+                        console.log('📢 SW Update notification:', event.data);
+                        showMessage('🔄 App updated successfully!', 'success');
+                    }
+                });
+            }
+        }
 
         // ============================================
         // NOTE SUGGESTIONS - FIXED PERSISTENCE
@@ -833,7 +935,6 @@
                         noteSuggestions = parsed;
                         console.log('✅ Loaded suggestions from localStorage:', noteSuggestions.length, 'items');
                         
-                        // If saved array is empty, keep it empty (user removed all)
                         if (noteSuggestions.length === 0) {
                             console.log('📝 Suggestions are empty - user removed all');
                         }
@@ -846,7 +947,6 @@
                     setDefaultSuggestions();
                 }
             } else {
-                // Only load defaults if there's NO saved data at all
                 console.log('ℹ️ No saved suggestions found, loading defaults');
                 setDefaultSuggestions();
             }
@@ -885,7 +985,6 @@
             
             if (!noteSuggestions || noteSuggestions.length === 0) {
                 console.log('ℹ️ No suggestions to render');
-                // Show a message when empty
                 const emptyMsg = document.createElement('div');
                 emptyMsg.style.cssText = `
                     color: #444444;
@@ -958,7 +1057,7 @@
             
             const removed = noteSuggestions[index];
             noteSuggestions.splice(index, 1);
-            saveNoteSuggestions(); // Save the empty array if all removed
+            saveNoteSuggestions();
             renderSuggestions();
             if (adminAuthenticated) renderAdminSuggestions();
             showMessage(`🗑️ Removed: "${removed}"`, 'error');
@@ -995,93 +1094,6 @@
                 container.appendChild(item);
             });
         }
-
-        // ============================================
-        // PWA INSTALL
-        // ============================================
-        const installBtn = document.getElementById('universal-install-btn');
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-
-        function initServiceWorkerAndPWA() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/Hk_amenities_v3/sw.js?v=' + APP_VERSION)
-                    .then(reg => {
-                        console.log('✅ Service Worker registered:', reg.scope);
-                        
-                        reg.addEventListener('updatefound', () => {
-                            console.log('🔄 New Service Worker found!');
-                            const newWorker = reg.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🔄 New SW installed, reloading...');
-                                    showMessage('🔄 App update available!', 'success');
-                                    setTimeout(() => {
-                                        window.location.reload(true);
-                                    }, 2000);
-                                }
-                            });
-                        });
-                    })
-                    .catch(err => {
-                        console.log('❌ Service Worker registration failed:', err);
-                    });
-                
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (!refreshing) {
-                        refreshing = true;
-                        console.log('🔄 Service Worker updated!');
-                        window.location.reload();
-                    }
-                });
-                
-                navigator.serviceWorker.addEventListener('message', (event) => {
-                    if (event.data && event.data.type === 'SW_UPDATED') {
-                        console.log('📢 SW Update notification:', event.data);
-                        showMessage('🔄 App updated successfully!', 'success');
-                    }
-                });
-            }
-            
-            if (isIOS && !isStandalone) {
-                installBtn.style.display = 'inline-block';
-                installBtn.textContent = '📱 Add to Home Screen';
-                installBtn.onclick = function() {
-                    alert("🍏 To install on iPhone / iOS:\n1. Tap the Safari 'Share' button (square icon with an up arrow at the bottom menu).\n2. Scroll down the panel and select 'Add to Home Screen'.");
-                };
-            } else if (!isStandalone) {
-                installBtn.style.display = 'inline-block';
-            }
-        }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'inline-block';
-            installBtn.textContent = '📥 Install';
-            installBtn.onclick = handleInstallClick;
-        });
-
-        async function handleInstallClick() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                if (outcome === 'accepted') {
-                    installBtn.style.display = 'none';
-                    showMessage("🎉 App Installed!", "success");
-                }
-            } else {
-                showMessage("Use browser menu to install", "success");
-            }
-        }
-
-        window.addEventListener('appinstalled', () => {
-            deferredPrompt = null;
-            installBtn.style.display = 'none';
-            showMessage("🎉 App Installed!", "success");
-        });
 
         // ============================================
         // ORIGINAL APP FUNCTIONS (PRESERVED)
