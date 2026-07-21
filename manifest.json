@@ -1,23 +1,25 @@
 {
-  "name": "OBLU SELECT Sangeli - Housekeeping Amenities",
+  "name": "OBLU SELECT Sangeli - Housekeeping Hub",
   "short_name": "Sangeli HK",
-  "description": "Horizontal Matrix Sheet System for Housekeeping",
-  "start_url": "/Hk_amenities_v3/index.html",
+  "description": "Housekeeping & Pantry Amenities Management System",
+  "start_url": "/Hk_amenities_v3/?utm_source=pwa",
+  "scope": "/Hk_amenities_v3/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0a0a0a",
   "theme_color": "#00cc00",
-  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
       "src": "icon-192.png",
-      "sizes": "192x192",
       "type": "image/png",
+      "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
-      "sizes": "512x512",
       "type": "image/png",
+      "sizes": "512x512",
       "purpose": "any maskable"
     }
   ]
