@@ -2,13 +2,16 @@
   "name": "OBLU SELECT Sangeli - Housekeeping Hub",
   "short_name": "Sangeli HK",
   "description": "Housekeeping & Pantry Amenities Management System",
-  "start_url": "/Hk_amenities_v3/",
+  "start_url": "/Hk_amenities_v3/?utm_source=pwa",
   "scope": "/Hk_amenities_v3/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0a0a",
   "theme_color": "#00cc00",
   "categories": ["productivity", "utilities"],
+  "dir": "ltr",
+  "lang": "en",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icon-192.png",
@@ -21,13 +24,6 @@
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "type": "image/png",
-      "sizes": "1080x1920"
     }
   ]
 }

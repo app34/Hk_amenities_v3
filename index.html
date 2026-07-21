@@ -350,7 +350,7 @@
     <div class="header">
         <div class="logo">🏝️ OBLU SELECT Sangeli</div>
         <div class="subtitle">Horizontal Matrix Sheet System</div>
-        <div class="version-badge">v4.0.1 | 2026-07-20</div>
+        <div class="version-badge">v4.0.2 | 2026-07-21</div>
         
         <!-- ============================================
         HEADER ACTIONS WITH DROPDOWN
@@ -563,9 +563,9 @@
         // ============================================
         // APP VERSION - UPDATE ON EVERY RELEASE
         // ============================================
-        const APP_VERSION = 'v4.0.1';
-        const BUILD_DATE = '2026-07-20';
-        const BUILD_TIME = '14:30';
+        const APP_VERSION = 'v4.0.2';
+        const BUILD_DATE = '2026-07-21';
+        const BUILD_TIME = '10:00';
 
         // ============================================
         // FORCE UPDATE - Clears cache if version changed
@@ -659,7 +659,6 @@
         // ============================================
         function clearCache() {
             if (confirm('🧹 Clear app cache?\n\nThis will remove cached files and force a fresh load.')) {
-                // Clear service worker caches
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
                         names.forEach(function(name) {
@@ -684,10 +683,8 @@
 
         function clearAllData() {
             if (confirm('🧹 Clear ALL app data?\n\nThis will remove:\n- All selections\n- All notes\n- Suggestions\n- History\n- Cache\n\nThis cannot be undone!')) {
-                // Clear localStorage
                 localStorage.clear();
                 
-                // Clear caches
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
                         names.forEach(function(name) {
@@ -710,7 +707,6 @@
 
         function resetToDefault() {
             if (confirm('🔄 Reset to default settings?\n\nThis will restore default suggestions and clear your selections.')) {
-                // Reset suggestions to default
                 const defaultSuggestions = [
                     'Pantry out of stock',
                     'Item not available in pantry',
@@ -722,7 +718,6 @@
                 ];
                 localStorage.setItem('oblu_note_suggestions', JSON.stringify(defaultSuggestions));
                 
-                // Clear selections
                 localStorage.removeItem('oblu_matrix_cache');
                 localStorage.removeItem('oblu_selected_items');
                 localStorage.removeItem('oblu_selected_villa');
@@ -744,7 +739,6 @@
             
             const modal = document.getElementById('uninstallModal');
             
-            // Detect device
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const isAndroid = /Android/.test(navigator.userAgent);
             
@@ -760,7 +754,6 @@
         }
 
         function confirmUninstall() {
-            // Unregister service workers
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     registrations.forEach(function(registration) {
@@ -770,10 +763,8 @@
                 });
             }
             
-            // Clear all data
             localStorage.clear();
             
-            // Clear caches
             if ('caches' in window) {
                 caches.keys().then(function(names) {
                     names.forEach(function(name) {
@@ -829,41 +820,67 @@
         });
 
         // ============================================
-        // NOTE SUGGESTIONS
+        // NOTE SUGGESTIONS - FIXED PERSISTENCE
         // ============================================
         function loadNoteSuggestions() {
+            console.log('📝 Loading suggestions...');
             const saved = localStorage.getItem(STORAGE_KEYS.NOTE_SUGGESTIONS);
+            
             if (saved) {
                 try {
-                    noteSuggestions = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        noteSuggestions = parsed;
+                        console.log('✅ Loaded suggestions from localStorage:', noteSuggestions.length);
+                    } else {
+                        console.log('⚠️ Saved suggestions empty, loading defaults');
+                        setDefaultSuggestions();
+                    }
                 } catch(e) {
-                    noteSuggestions = [];
+                    console.error('❌ Failed to parse suggestions:', e);
+                    setDefaultSuggestions();
                 }
-            }
-            
-            if (noteSuggestions.length === 0) {
-                noteSuggestions = [
-                    'Pantry out of stock',
-                    'Item not available in pantry',
-                    'Running low on supplies',
-                    'Need urgent restock',
-                    'Limited quantity available',
-                    'Out of stock - please replenish',
-                    'Insufficient stock for today'
-                ];
-                saveNoteSuggestions();
+            } else {
+                console.log('ℹ️ No saved suggestions found, loading defaults');
+                setDefaultSuggestions();
             }
             
             renderSuggestions();
         }
 
+        function setDefaultSuggestions() {
+            noteSuggestions = [
+                'Pantry out of stock',
+                'Item not available in pantry',
+                'Running low on supplies',
+                'Need urgent restock',
+                'Limited quantity available',
+                'Out of stock - please replenish',
+                'Insufficient stock for today'
+            ];
+            saveNoteSuggestions();
+            console.log('📝 Default suggestions loaded');
+        }
+
         function saveNoteSuggestions() {
-            localStorage.setItem(STORAGE_KEYS.NOTE_SUGGESTIONS, JSON.stringify(noteSuggestions));
+            try {
+                localStorage.setItem(STORAGE_KEYS.NOTE_SUGGESTIONS, JSON.stringify(noteSuggestions));
+                console.log('💾 Suggestions saved:', noteSuggestions.length);
+            } catch(e) {
+                console.error('❌ Failed to save suggestions:', e);
+            }
         }
 
         function renderSuggestions() {
             const container = document.getElementById('suggestions-container');
+            if (!container) return;
+            
             container.innerHTML = '';
+            
+            if (!noteSuggestions || noteSuggestions.length === 0) {
+                console.log('⚠️ No suggestions to render');
+                return;
+            }
             
             noteSuggestions.forEach((suggestion, index) => {
                 const chip = document.createElement('div');
@@ -875,10 +892,14 @@
                 chip.onclick = () => applySuggestion(suggestion);
                 container.appendChild(chip);
             });
+            
+            console.log('🎨 Rendered', noteSuggestions.length, 'suggestions');
         }
 
         function applySuggestion(text) {
             const input = document.getElementById('custom-notes-input');
+            if (!input) return;
+            
             const current = input.value.trim();
             if (current) {
                 input.value = current + '\n' + text;
@@ -891,6 +912,8 @@
 
         function addSuggestion() {
             const input = document.getElementById('new-suggestion-input');
+            if (!input) return;
+            
             const text = input.value.trim();
             if (!text) {
                 showMessage('Please enter a suggestion', 'error');
@@ -900,6 +923,7 @@
                 showMessage('Suggestion already exists', 'error');
                 return;
             }
+            
             noteSuggestions.push(text);
             saveNoteSuggestions();
             renderSuggestions();
@@ -909,6 +933,11 @@
         }
 
         function removeSuggestion(index) {
+            if (index < 0 || index >= noteSuggestions.length) {
+                console.error('❌ Invalid suggestion index:', index);
+                return;
+            }
+            
             noteSuggestions.splice(index, 1);
             saveNoteSuggestions();
             renderSuggestions();
@@ -917,14 +946,19 @@
         }
 
         function handleSuggestionKeyPress(e) {
-            if (e.key === 'Enter') addSuggestion();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addSuggestion();
+            }
         }
 
         function renderAdminSuggestions() {
             const container = document.getElementById('admin-suggestions-list');
+            if (!container) return;
+            
             container.innerHTML = '';
             
-            if (noteSuggestions.length === 0) {
+            if (!noteSuggestions || noteSuggestions.length === 0) {
                 container.innerHTML = '<div style="color:#666;font-size:12px;padding:8px;">No suggestions available</div>';
                 return;
             }
