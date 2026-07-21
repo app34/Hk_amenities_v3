@@ -350,14 +350,14 @@
     <div class="header">
         <div class="logo">🏝️ OBLU SELECT Sangeli</div>
         <div class="subtitle">Horizontal Matrix Sheet System</div>
-        <div class="version-badge">v4.0.5 | 2026-07-21</div>
+        <div class="version-badge">v4.0.6 | 2026-07-21</div>
         
         <!-- ============================================
         HEADER ACTIONS WITH DROPDOWN
         ============================================ -->
         <div class="header-actions">
-            <!-- Install Button -->
-            <button id="installBtn" style="background: #00cc00; color: #0a0a0a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 0 10px rgba(0,204,0,0.6);">
+            <!-- Install Button - SIMPLE APPROACH -->
+            <button id="installBtn" style="background: #00cc00; color: #0a0a0a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 0 10px rgba(0,204,0,0.6); display:inline-block;">
                 📥 Install App
             </button>
             
@@ -561,11 +561,11 @@
 
     <script>
         // ============================================
-        // APP VERSION - UPDATE ON EVERY RELEASE
+        // APP VERSION
         // ============================================
-        const APP_VERSION = 'v4.0.5';
+        const APP_VERSION = 'v4.0.6';
         const BUILD_DATE = '2026-07-21';
-        const BUILD_TIME = '17:00';
+        const BUILD_TIME = '18:00';
 
         // ============================================
         // FORCE UPDATE - Clears cache if version changed
@@ -575,7 +575,6 @@
             
             if (storedVersion !== APP_VERSION) {
                 console.log('🔄 App update detected! Version:', APP_VERSION);
-                console.log('🔄 Previous version:', storedVersion || 'First install');
                 
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
@@ -634,66 +633,67 @@
         })();
 
         // ============================================
-        // PWA INSTALL - PROPERLY FIXED
+        // PWA INSTALL - SIMPLE WORKING APPROACH
         // ============================================
-        let deferredPrompt = null;
-        const installBtn = document.getElementById('installBtn');
+        var installBtn = document.getElementById('installBtn');
+        var deferredPrompt = null;
         
-        console.log('🔧 Install button found:', installBtn ? 'YES' : 'NO');
-
-        // Check if already installed
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
+        // Check if app is already installed
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         
         if (isStandalone) {
             installBtn.style.display = 'none';
-            console.log('✅ App already installed - hiding install button');
+            console.log('✅ App already installed - hiding button');
         }
-
+        
         // iOS detection
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         
         if (isIOS && !isStandalone) {
             installBtn.textContent = '📱 Add to Home Screen';
             installBtn.onclick = function() {
-                alert("🍏 To install on iPhone / iOS:\n1. Tap the Safari 'Share' button (square icon with an up arrow at the bottom menu).\n2. Scroll down and select 'Add to Home Screen'.\n3. Tap 'Add' in the top right corner.");
+                alert("🍏 To install:\n1. Tap Share button (⬆️)\n2. Scroll down\n3. Tap 'Add to Home Screen'\n4. Tap 'Add'");
             };
-            console.log('📱 iOS device detected - showing instructions');
+            console.log('📱 iOS device detected');
         }
-
-        // Android - listen for beforeinstallprompt
-        window.addEventListener('beforeinstallprompt', (e) => {
+        
+        // Listen for install prompt (Android Chrome)
+        window.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
             deferredPrompt = e;
             installBtn.style.display = 'inline-block';
             installBtn.textContent = '📥 Install App';
+            console.log('📥 Install prompt received!');
+            
+            // Remove old click handler and add new one
             installBtn.onclick = function() {
                 console.log('📥 Install button clicked');
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt.userChoice.then(function(choiceResult) {
                         if (choiceResult.outcome === 'accepted') {
-                            console.log('✅ User accepted the install prompt');
+                            console.log('✅ User installed the app');
                             installBtn.style.display = 'none';
                             showMessage('🎉 App Installed!', 'success');
                         } else {
-                            console.log('❌ User dismissed the install prompt');
-                            showMessage('Installation cancelled', 'error');
+                            console.log('❌ User dismissed install');
+                            showMessage('Install cancelled', 'error');
                         }
                         deferredPrompt = null;
                     });
                 } else {
+                    console.log('⚠️ No deferredPrompt available');
                     showMessage('Use browser menu to install', 'success');
                 }
             };
-            console.log('📥 Install prompt event received');
         });
-
+        
         // App installed event
-        window.addEventListener('appinstalled', () => {
+        window.addEventListener('appinstalled', function() {
             deferredPrompt = null;
             installBtn.style.display = 'none';
             showMessage('🎉 App Installed Successfully!', 'success');
-            console.log('🎉 App installed successfully');
+            console.log('🎉 App installed event fired');
         });
 
         // ============================================
@@ -701,15 +701,15 @@
         // ============================================
         function toggleDropdown(event) {
             event.stopPropagation();
-            const menu = document.getElementById('dropdownMenu');
-            const arrow = document.getElementById('dropdownArrow');
+            var menu = document.getElementById('dropdownMenu');
+            var arrow = document.getElementById('dropdownArrow');
             
             menu.classList.toggle('show');
             arrow.classList.toggle('open');
         }
 
         document.addEventListener('click', function(event) {
-            const container = document.querySelector('.dropdown-container');
+            var container = document.querySelector('.dropdown-container');
             if (container && !container.contains(event.target)) {
                 document.getElementById('dropdownMenu').classList.remove('show');
                 document.getElementById('dropdownArrow').classList.remove('open');
@@ -725,7 +725,7 @@
                     caches.keys().then(function(names) {
                         names.forEach(function(name) {
                             if (name.includes('oblu-sangeli') || name.includes('sangeli')) {
-                                caches.delete(name).then(() => {
+                                caches.delete(name).then(function() {
                                     console.log('🗑️ Deleted cache:', name);
                                 });
                             }
@@ -737,7 +737,7 @@
                 document.getElementById('dropdownMenu').classList.remove('show');
                 document.getElementById('dropdownArrow').classList.remove('open');
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     window.location.reload(true);
                 }, 1500);
             }
@@ -750,7 +750,7 @@
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
                         names.forEach(function(name) {
-                            caches.delete(name).then(() => {
+                            caches.delete(name).then(function() {
                                 console.log('🗑️ Deleted cache:', name);
                             });
                         });
@@ -761,7 +761,7 @@
                 document.getElementById('dropdownMenu').classList.remove('show');
                 document.getElementById('dropdownArrow').classList.remove('open');
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     window.location.reload(true);
                 }, 1500);
             }
@@ -769,7 +769,7 @@
 
         function resetToDefault() {
             if (confirm('🔄 Reset to default settings?\n\nThis will restore default suggestions and clear your selections.')) {
-                const defaultSuggestions = [
+                var defaultSuggestions = [
                     'Pantry out of stock',
                     'Item not available in pantry',
                     'Running low on supplies',
@@ -789,7 +789,7 @@
                 document.getElementById('dropdownMenu').classList.remove('show');
                 document.getElementById('dropdownArrow').classList.remove('open');
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     window.location.reload(true);
                 }, 1500);
             }
@@ -799,10 +799,10 @@
             document.getElementById('dropdownMenu').classList.remove('show');
             document.getElementById('dropdownArrow').classList.remove('open');
             
-            const modal = document.getElementById('uninstallModal');
+            var modal = document.getElementById('uninstallModal');
             
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isAndroid = /Android/.test(navigator.userAgent);
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            var isAndroid = /Android/.test(navigator.userAgent);
             
             document.getElementById('ios-uninstall-step').style.display = isIOS ? 'block' : 'none';
             document.getElementById('android-uninstall-step').style.display = isAndroid ? 'block' : 'none';
@@ -830,7 +830,7 @@
             if ('caches' in window) {
                 caches.keys().then(function(names) {
                     names.forEach(function(name) {
-                        caches.delete(name).then(() => {
+                        caches.delete(name).then(function() {
                             console.log('🗑️ Deleted cache:', name);
                         });
                     });
@@ -840,7 +840,7 @@
             closeUninstallModal();
             showMessage('🗑️ App data cleared! Remove from home screen manually.', 'error');
             
-            setTimeout(() => {
+            setTimeout(function() {
                 window.location.reload(true);
             }, 2000);
         }
@@ -848,25 +848,25 @@
         // ============================================
         // CONFIGURATION
         // ============================================
-        const STORAGE_KEYS = { 
+        var STORAGE_KEYS = { 
             SHARE_HISTORY: 'oblu_share_history',
             MATRIX_CACHE: 'oblu_matrix_cache',
             NOTE_SUGGESTIONS: 'oblu_note_suggestions'
         };
         
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznho1OV5R0GPXW1nIjJeXmoUOv3M75yJbvxrKtRBAVPW--Y4XtMpjuPvVVK124GlKn/exec";
+        var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznho1OV5R0GPXW1nIjJeXmoUOv3M75yJbvxrKtRBAVPW--Y4XtMpjuPvVVK124GlKn/exec";
 
-        let AMENITIES_CATEGORIES = {};
-        let AMENITIES = []; 
-        let selectedAmenities = []; 
-        let selectedVilla = null;
-        let adminAuthenticated = false; 
-        let currentSearchTerm = ''; 
-        let currentCategoryFilter = 'all'; 
-        let searchTimeout = null;
-        let noteSuggestions = [];
+        var AMENITIES_CATEGORIES = {};
+        var AMENITIES = []; 
+        var selectedAmenities = []; 
+        var selectedVilla = null;
+        var adminAuthenticated = false; 
+        var currentSearchTerm = ''; 
+        var currentCategoryFilter = 'all'; 
+        var searchTimeout = null;
+        var noteSuggestions = [];
         
-        const villaNames = { 
+        var villaNames = { 
             'water-villa-1st': 'Water Villa 1st Pantry', 
             'water-villa-2nd': 'Water Villa 2nd Pantry', 
             'beach-villa-1st': 'Beach Villa 1st Pantry', 
@@ -886,42 +886,12 @@
         function initServiceWorker() {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/Hk_amenities_v3/sw.js?v=' + APP_VERSION)
-                    .then(reg => {
+                    .then(function(reg) {
                         console.log('✅ Service Worker registered:', reg.scope);
-                        
-                        reg.addEventListener('updatefound', () => {
-                            console.log('🔄 New Service Worker found!');
-                            const newWorker = reg.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🔄 New SW installed, reloading...');
-                                    showMessage('🔄 App update available!', 'success');
-                                    setTimeout(() => {
-                                        window.location.reload(true);
-                                    }, 2000);
-                                }
-                            });
-                        });
                     })
-                    .catch(err => {
+                    .catch(function(err) {
                         console.log('❌ Service Worker registration failed:', err);
                     });
-                
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (!refreshing) {
-                        refreshing = true;
-                        console.log('🔄 Service Worker updated!');
-                        window.location.reload();
-                    }
-                });
-                
-                navigator.serviceWorker.addEventListener('message', (event) => {
-                    if (event.data && event.data.type === 'SW_UPDATED') {
-                        console.log('📢 SW Update notification:', event.data);
-                        showMessage('🔄 App updated successfully!', 'success');
-                    }
-                });
             }
         }
 
@@ -929,29 +899,20 @@
         // NOTE SUGGESTIONS
         // ============================================
         function loadNoteSuggestions() {
-            console.log('📝 Loading suggestions...');
-            const saved = localStorage.getItem(STORAGE_KEYS.NOTE_SUGGESTIONS);
+            var saved = localStorage.getItem(STORAGE_KEYS.NOTE_SUGGESTIONS);
             
             if (saved !== null && saved !== undefined) {
                 try {
-                    const parsed = JSON.parse(saved);
+                    var parsed = JSON.parse(saved);
                     if (Array.isArray(parsed)) {
                         noteSuggestions = parsed;
-                        console.log('✅ Loaded suggestions from localStorage:', noteSuggestions.length, 'items');
-                        
-                        if (noteSuggestions.length === 0) {
-                            console.log('📝 Suggestions are empty - user removed all');
-                        }
                     } else {
-                        console.log('⚠️ Saved data is not an array, loading defaults');
                         setDefaultSuggestions();
                     }
                 } catch(e) {
-                    console.error('❌ Failed to parse suggestions:', e);
                     setDefaultSuggestions();
                 }
             } else {
-                console.log('ℹ️ No saved suggestions found, loading defaults');
                 setDefaultSuggestions();
             }
             
@@ -969,27 +930,24 @@
                 'Insufficient stock for today'
             ];
             saveNoteSuggestions();
-            console.log('📝 Default suggestions loaded');
         }
 
         function saveNoteSuggestions() {
             try {
                 localStorage.setItem(STORAGE_KEYS.NOTE_SUGGESTIONS, JSON.stringify(noteSuggestions));
-                console.log('💾 Suggestions saved:', noteSuggestions.length, 'items');
             } catch(e) {
-                console.error('❌ Failed to save suggestions:', e);
+                console.error('Failed to save suggestions:', e);
             }
         }
 
         function renderSuggestions() {
-            const container = document.getElementById('suggestions-container');
+            var container = document.getElementById('suggestions-container');
             if (!container) return;
             
             container.innerHTML = '';
             
             if (!noteSuggestions || noteSuggestions.length === 0) {
-                console.log('ℹ️ No suggestions to render');
-                const emptyMsg = document.createElement('div');
+                var emptyMsg = document.createElement('div');
                 emptyMsg.style.cssText = `
                     color: #444444;
                     font-size: 11px;
@@ -1003,25 +961,23 @@
                 return;
             }
             
-            noteSuggestions.forEach((suggestion, index) => {
-                const chip = document.createElement('div');
+            noteSuggestions.forEach(function(suggestion, index) {
+                var chip = document.createElement('div');
                 chip.className = 'suggestion-chip';
                 chip.innerHTML = `
                     ${suggestion}
                     <span class="remove-chip" onclick="event.stopPropagation();removeSuggestion(${index})">×</span>
                 `;
-                chip.onclick = () => applySuggestion(suggestion);
+                chip.onclick = function() { applySuggestion(suggestion); };
                 container.appendChild(chip);
             });
-            
-            console.log('🎨 Rendered', noteSuggestions.length, 'suggestions');
         }
 
         function applySuggestion(text) {
-            const input = document.getElementById('custom-notes-input');
+            var input = document.getElementById('custom-notes-input');
             if (!input) return;
             
-            const current = input.value.trim();
+            var current = input.value.trim();
             if (current) {
                 input.value = current + '\n' + text;
             } else {
@@ -1032,10 +988,10 @@
         }
 
         function addSuggestion() {
-            const input = document.getElementById('new-suggestion-input');
+            var input = document.getElementById('new-suggestion-input');
             if (!input) return;
             
-            const text = input.value.trim();
+            var text = input.value.trim();
             if (!text) {
                 showMessage('Please enter a suggestion', 'error');
                 return;
@@ -1054,18 +1010,13 @@
         }
 
         function removeSuggestion(index) {
-            if (index < 0 || index >= noteSuggestions.length) {
-                console.error('❌ Invalid suggestion index:', index);
-                return;
-            }
+            if (index < 0 || index >= noteSuggestions.length) return;
             
-            const removed = noteSuggestions[index];
             noteSuggestions.splice(index, 1);
             saveNoteSuggestions();
             renderSuggestions();
             if (adminAuthenticated) renderAdminSuggestions();
-            showMessage(`🗑️ Removed: "${removed}"`, 'error');
-            console.log('🗑️ Suggestion removed, remaining:', noteSuggestions.length);
+            showMessage('🗑️ Suggestion removed', 'error');
         }
 
         function handleSuggestionKeyPress(e) {
@@ -1076,18 +1027,18 @@
         }
 
         function renderAdminSuggestions() {
-            const container = document.getElementById('admin-suggestions-list');
+            var container = document.getElementById('admin-suggestions-list');
             if (!container) return;
             
             container.innerHTML = '';
             
             if (!noteSuggestions || noteSuggestions.length === 0) {
-                container.innerHTML = '<div style="color:#666;font-size:12px;padding:8px;">No suggestions available. Add some above.</div>';
+                container.innerHTML = '<div style="color:#666;font-size:12px;padding:8px;">No suggestions available.</div>';
                 return;
             }
             
-            noteSuggestions.forEach((suggestion, index) => {
-                const item = document.createElement('div');
+            noteSuggestions.forEach(function(suggestion, index) {
+                var item = document.createElement('div');
                 item.className = 'category-item';
                 item.innerHTML = `
                     <span style="font-size:12px;">${suggestion}</span>
@@ -1103,21 +1054,21 @@
         // ORIGINAL APP FUNCTIONS
         // ============================================
         function loadInitialData() {
-            const localCache = localStorage.getItem(STORAGE_KEYS.MATRIX_CACHE);
+            var localCache = localStorage.getItem(STORAGE_KEYS.MATRIX_CACHE);
             if (localCache) {
                 try {
                     AMENITIES_CATEGORIES = JSON.parse(localCache);
                     updateAmenitiesArray();
                     renderAmenities();
                 } catch(e) {
-                    console.error("Cache parsing mismatch, bypassing cache layout.", e);
+                    console.error("Cache parsing mismatch.", e);
                 }
             }
             
             if (WEB_APP_URL) {
                 fetch(WEB_APP_URL)
-                .then(res => res.json())
-                .then(data => {
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
                     if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0 && data._status !== "empty") {
                         AMENITIES_CATEGORIES = data;
                         localStorage.setItem(STORAGE_KEYS.MATRIX_CACHE, JSON.stringify(data));
@@ -1125,7 +1076,7 @@
                         renderAmenities();
                         if (adminAuthenticated) updateCategoryManagement();
                     }
-                }).catch(err => console.log("Startup sync bypassed (offline layout mode)."));
+                }).catch(function(err) { console.log("Startup sync bypassed."); });
             }
         }
 
@@ -1135,12 +1086,12 @@
                 return;
             }
             
-            const btn = document.getElementById('sync-btn');
+            var btn = document.getElementById('sync-btn');
             btn.classList.add('spinning');
             
             fetch(WEB_APP_URL)
-            .then(res => res.json())
-            .then(data => {
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
                 btn.classList.remove('spinning');
                 if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0) {
                     if (data._status === "empty") {
@@ -1157,7 +1108,7 @@
                     showMessage("Blank profile structure synced", "error");
                 }
             })
-            .catch(err => {
+            .catch(function(err) {
                 btn.classList.remove('spinning');
                 console.error(err);
                 showMessage("❌ Connection error. Failed to sync.", "error");
@@ -1166,17 +1117,17 @@
 
         function updateAmenitiesArray() { 
             AMENITIES = []; 
-            Object.values(AMENITIES_CATEGORIES).forEach(items => AMENITIES.push(...items)); 
+            Object.values(AMENITIES_CATEGORIES).forEach(function(items) { AMENITIES.push.apply(AMENITIES, items); }); 
         }
         
         function initializeUI() {
             initializeSearchAndFilter();
-            document.querySelectorAll('.villa-btn').forEach(btn => {
+            document.querySelectorAll('.villa-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     selectedVilla = this.getAttribute('data-villa');
-                    document.querySelectorAll('.villa-btn').forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.villa-btn').forEach(function(b) { b.classList.remove('selected'); });
                     this.classList.add('selected');
-                    document.getElementById('selected-villa').textContent = `Assigned location: ${villaNames[selectedVilla]}`;
+                    document.getElementById('selected-villa').textContent = 'Assigned location: ' + villaNames[selectedVilla];
                     updateSelectedItemsDisplay();
                 });
             });
@@ -1188,8 +1139,8 @@
         }
 
         function initializeSearchAndFilter() {
-            const input = document.getElementById('search-input'); 
-            const clearBtn = document.getElementById('search-clear');
+            var input = document.getElementById('search-input'); 
+            var clearBtn = document.getElementById('search-clear');
             input.addEventListener('input', function() {
                 clearTimeout(searchTimeout); 
                 currentSearchTerm = this.value.trim().toLowerCase();
@@ -1201,27 +1152,27 @@
 
         function filterByCategory(category) {
             currentCategoryFilter = category; 
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            const target = document.querySelector(`[data-category="${category}"]`); 
+            document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+            var target = document.querySelector('[data-category="' + category + '"]'); 
             if (target) target.classList.add('active');
             applyFilters();
         }
 
         function applyFilters() {
-            const btns = document.querySelectorAll('.amenity-btn'); 
-            const heads = document.querySelectorAll('.category-header'); 
-            let visibleItems = 0;
-            const old = document.querySelector('.no-results'); 
+            var btns = document.querySelectorAll('.amenity-btn'); 
+            var heads = document.querySelectorAll('.category-header'); 
+            var visibleItems = 0;
+            var old = document.querySelector('.no-results'); 
             if (old) old.remove();
-            btns.forEach(b => b.classList.add('hidden')); 
-            heads.forEach(h => h.classList.add('hidden'));
+            btns.forEach(function(b) { b.classList.add('hidden'); }); 
+            heads.forEach(function(h) { h.classList.add('hidden'); });
 
-            Object.keys(AMENITIES_CATEGORIES).forEach(cat => {
-                let hasVisible = false; 
-                const headerEl = Array.from(heads).find(h => h.textContent === cat);
+            Object.keys(AMENITIES_CATEGORIES).forEach(function(cat) {
+                var hasVisible = false; 
+                var headerEl = Array.from(heads).find(function(h) { return h.textContent === cat; });
                 if (currentCategoryFilter === 'all' || currentCategoryFilter === cat) {
-                    AMENITIES_CATEGORIES[cat].forEach(item => {
-                        const btnEl = Array.from(btns).find(b => b.textContent === item);
+                    AMENITIES_CATEGORIES[cat].forEach(function(item) {
+                        var btnEl = Array.from(btns).find(function(b) { return b.textContent === item; });
                         if (btnEl && (!currentSearchTerm || item.toLowerCase().includes(currentSearchTerm))) {
                             btnEl.classList.remove('hidden'); 
                             hasVisible = true; 
@@ -1232,12 +1183,12 @@
                 }
             });
             if (visibleItems === 0 && Object.keys(AMENITIES_CATEGORIES).length > 0) {
-                const err = document.createElement('div'); 
+                var err = document.createElement('div'); 
                 err.className = 'no-results'; 
                 err.textContent = 'No records matched tracking';
                 document.getElementById('amenities-grid').appendChild(err);
             }
-            document.getElementById('search-stats').textContent = `Total elements: ${AMENITIES.length}`;
+            document.getElementById('search-stats').textContent = 'Total elements: ' + AMENITIES.length;
         }
 
         function clearSearch() { 
@@ -1248,37 +1199,37 @@
         }
         
         function renderCategoryFilters() {
-            const container = document.getElementById('filter-container'); 
+            var container = document.getElementById('filter-container'); 
             if (!container) return;
             container.innerHTML = '<button class="filter-btn active" data-category="all" onclick="filterByCategory(\'all\')">All Columns</button>';
-            Object.keys(AMENITIES_CATEGORIES).forEach(cat => {
-                const btn = document.createElement('button'); 
+            Object.keys(AMENITIES_CATEGORIES).forEach(function(cat) {
+                var btn = document.createElement('button'); 
                 btn.className = 'filter-btn'; 
                 btn.setAttribute('data-category', cat);
                 btn.textContent = cat; 
-                btn.onclick = () => filterByCategory(cat); 
+                btn.onclick = function() { filterByCategory(cat); }; 
                 container.appendChild(btn);
             });
         }
 
         function renderAmenities() {
-            const grid = document.getElementById('amenities-grid'); 
+            var grid = document.getElementById('amenities-grid'); 
             grid.innerHTML = '';
             if (Object.keys(AMENITIES_CATEGORIES).length === 0) {
                 grid.innerHTML = '<div class="no-results">System template empty. Unlock Admin Panel below or tap 🔄 to sync rows.</div>'; 
                 return;
             }
-            Object.keys(AMENITIES_CATEGORIES).forEach(cat => {
-                const h = document.createElement('div'); 
+            Object.keys(AMENITIES_CATEGORIES).forEach(function(cat) {
+                var h = document.createElement('div'); 
                 h.className = 'category-header'; 
                 h.textContent = cat; 
                 grid.appendChild(h);
-                AMENITIES_CATEGORIES[cat].forEach(item => {
-                    const b = document.createElement('button'); 
+                AMENITIES_CATEGORIES[cat].forEach(function(item) {
+                    var b = document.createElement('button'); 
                     b.className = 'amenity-btn'; 
                     b.textContent = item;
                     if (item.toLowerCase().includes('segafred')) b.classList.add('light-red');
-                    b.onclick = () => toggleAmenity(item); 
+                    b.onclick = function() { toggleAmenity(item); }; 
                     grid.appendChild(b);
                 });
             });
@@ -1288,73 +1239,73 @@
         }
 
         function toggleAmenity(item) {
-            const idx = selectedAmenities.indexOf(item);
+            var idx = selectedAmenities.indexOf(item);
             if (idx > -1) { 
                 selectedAmenities.splice(idx, 1); 
-                showMessage(`Removed: ${item}`, 'error'); 
+                showMessage('Removed: ' + item, 'error'); 
             } else { 
                 selectedAmenities.push(item); 
-                showMessage(`Added: ${item}`, 'success'); 
+                showMessage('Added: ' + item, 'success'); 
             }
             updateSelectedItemsDisplay(); 
             updateAmenityButtons();
         }
 
         function updateSelectedItemsDisplay() {
-            const prefix = selectedVilla ? `${villaNames[selectedVilla]}\n\n` : '';
-            const structuredOrder = [];
-            Object.keys(AMENITIES_CATEGORIES).forEach(category => {
-                AMENITIES_CATEGORIES[category].forEach(item => {
+            var prefix = selectedVilla ? villaNames[selectedVilla] + '\n\n' : '';
+            var structuredOrder = [];
+            Object.keys(AMENITIES_CATEGORIES).forEach(function(category) {
+                AMENITIES_CATEGORIES[category].forEach(function(item) {
                     if (selectedAmenities.includes(item)) { structuredOrder.push(item); }
                 });
             });
 
-            const itemsList = structuredOrder.join('\n');
-            const noteValue = document.getElementById('custom-notes-input').value.trim();
-            const suffix = noteValue ? `\n\nNote:\n${noteValue}` : '';
+            var itemsList = structuredOrder.join('\n');
+            var noteValue = document.getElementById('custom-notes-input').value.trim();
+            var suffix = noteValue ? '\n\nNote:\n' + noteValue : '';
             
-            const displayTextarea = document.getElementById('selected-items');
+            var displayTextarea = document.getElementById('selected-items');
             displayTextarea.value = prefix + itemsList + suffix;
             displayTextarea.scrollTop = displayTextarea.scrollHeight;
             
-            const hasContent = selectedAmenities.length > 0 || noteValue.length > 0;
-            const toggle = hasContent ? 'add' : 'remove';
+            var hasContent = selectedAmenities.length > 0 || noteValue.length > 0;
+            var toggle = hasContent ? 'add' : 'remove';
             document.getElementById('floating-copy').classList[toggle]('show'); 
             document.getElementById('floating-whatsapp').classList[toggle]('show');
         }
 
         function updateAmenityButtons() {
-            document.querySelectorAll('.amenity-btn').forEach(b => { 
+            document.querySelectorAll('.amenity-btn').forEach(function(b) { 
                 b.classList[selectedAmenities.includes(b.textContent) ? 'add' : 'remove']('selected'); 
             });
         }
 
         function showMessage(txt, type) {
-            const old = document.querySelector('.message'); 
+            var old = document.querySelector('.message'); 
             if (old) old.remove();
-            const m = document.createElement('div'); 
-            m.className = `message ${type}`; 
+            var m = document.createElement('div'); 
+            m.className = 'message ' + type; 
             m.textContent = txt; 
             document.body.appendChild(m);
             void m.offsetWidth; 
             m.classList.add('show');
-            setTimeout(() => { 
+            setTimeout(function() { 
                 m.classList.remove('show'); 
-                setTimeout(() => m.remove(), 400); 
+                setTimeout(function() { m.remove(); }, 400); 
             }, 1200);
         }
 
         function copyToClipboard() { 
-            const textContent = document.getElementById('selected-items').value;
+            var textContent = document.getElementById('selected-items').value;
             if (!textContent.trim()) return; 
-            navigator.clipboard.writeText(textContent).then(() => showMessage('📋 Copied!', 'success')); 
+            navigator.clipboard.writeText(textContent).then(function() { showMessage('📋 Copied!', 'success'); }); 
         }
         
         function shareToWhatsApp() { 
-            const textContent = document.getElementById('selected-items').value;
+            var textContent = document.getElementById('selected-items').value;
             if (!textContent.trim()) return; 
             saveShareHistoryLocal(selectedVilla ? villaNames[selectedVilla] : '', selectedAmenities, 'WhatsApp'); 
-            window.open(`https://wa.me/?text=${encodeURIComponent(textContent)}`, '_blank'); 
+            window.open('https://wa.me/?text=' + encodeURIComponent(textContent), '_blank'); 
         }
         
         function clearList() { 
@@ -1376,7 +1327,7 @@
         }
 
         function authenticateAdmin() {
-            const inp = document.getElementById('admin-password-input');
+            var inp = document.getElementById('admin-password-input');
             if (inp.value === '8888') {
                 adminAuthenticated = true; 
                 document.getElementById('admin-password').classList.remove('show');
@@ -1409,31 +1360,31 @@
         }
         
         function showAdminSection(sec) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); 
+            document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); }); 
             document.getElementById(sec + '-btn').classList.add('active');
-            document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.admin-tab-content').forEach(function(el) { el.style.display = 'none'; });
             document.getElementById(sec + '-section').style.display = 'block';
             if (sec === 'history') loadShareHistory();
             if (sec === 'suggestions') renderAdminSuggestions();
         }
 
         function loadShareHistory() {
-            const data = localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY)) : [];
-            document.getElementById('history-list').innerHTML = data.map(h => `
-                <div class="history-item">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                        <span style="font-weight:bold;color:#00ff00;">${h.platform}</span>
-                        <span style="font-size:10px;color:#888;">${new Date(h.shared_at).toLocaleTimeString()}</span>
-                    </div>
-                    ${h.villa_type ? `<div style="color:#00ccff;font-size:11px;">${h.villa_type}</div>` : ''}
-                    <div style="color:#eee;font-size:11px;">${h.amenities.join(', ')}</div>
-                </div>
-            `).join('') || '<p style="color:#888;text-align:center;padding:10px;">No transaction logs.</p>';
+            var data = localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY)) : [];
+            document.getElementById('history-list').innerHTML = data.map(function(h) {
+                return '<div class="history-item">' +
+                    '<div style="display:flex;justify-content:space-between;margin-bottom:3px;">' +
+                        '<span style="font-weight:bold;color:#00ff00;">' + h.platform + '</span>' +
+                        '<span style="font-size:10px;color:#888;">' + new Date(h.shared_at).toLocaleTimeString() + '</span>' +
+                    '</div>' +
+                    (h.villa_type ? '<div style="color:#00ccff;font-size:11px;">' + h.villa_type + '</div>' : '') +
+                    '<div style="color:#eee;font-size:11px;">' + h.amenities.join(', ') + '</div>' +
+                '</div>';
+            }).join('') || '<p style="color:#888;text-align:center;padding:10px;">No transaction logs.</p>';
         }
 
         function saveShareHistoryLocal(villa, items, platform) {
             try { 
-                const h = localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY)) : [];
+                var h = localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY) ? JSON.parse(localStorage.getItem(STORAGE_KEYS.SHARE_HISTORY)) : [];
                 h.unshift({ villa_type: villa, amenities: items, platform: platform, shared_at: new Date().toISOString() });
                 localStorage.setItem(STORAGE_KEYS.SHARE_HISTORY, JSON.stringify(h.slice(0, 50))); 
             } catch (e) {}
@@ -1454,28 +1405,28 @@
 
         function updateCategoryManagement() {
             updateCategoriesView(); 
-            const list = document.getElementById('category-list'); 
+            var list = document.getElementById('category-list'); 
             list.innerHTML = '';
-            const sel = document.getElementById('category-select'); 
+            var sel = document.getElementById('category-select'); 
             sel.innerHTML = '<option value="">Choose heading</option>';
-            const itemsList = document.getElementById('items-list'); 
+            var itemsList = document.getElementById('items-list'); 
             itemsList.innerHTML = '';
 
-            Object.keys(AMENITIES_CATEGORIES).forEach(cat => {
-                const d = document.createElement('div'); 
+            Object.keys(AMENITIES_CATEGORIES).forEach(function(cat) {
+                var d = document.createElement('div'); 
                 d.className='category-item'; 
-                d.innerHTML=`<span>Header: <strong>${cat}</strong></span><button class="remove-btn" onclick="removeCategory('${cat}')">Delete</button>`;
+                d.innerHTML='<span>Header: <strong>' + cat + '</strong></span><button class="remove-btn" onclick="removeCategory(\'' + cat + '\')">Delete</button>';
                 list.appendChild(d);
-                const o = document.createElement('option'); 
+                var o = document.createElement('option'); 
                 o.value=cat; 
                 o.textContent=cat; 
                 sel.appendChild(o);
-                const wrap = document.createElement('div'); 
-                wrap.innerHTML=`<h5 style="color:#00cc00;margin:6px 0 3px 0;font-size:11px;">[ ${cat} ]</h5>`;
-                AMENITIES_CATEGORIES[cat].forEach(i => {
-                    const row = document.createElement('div'); 
+                var wrap = document.createElement('div'); 
+                wrap.innerHTML='<h5 style="color:#00cc00;margin:6px 0 3px 0;font-size:11px;">[ ' + cat + ' ]</h5>';
+                AMENITIES_CATEGORIES[cat].forEach(function(i) {
+                    var row = document.createElement('div'); 
                     row.className='category-item'; 
-                    row.innerHTML=`<span style="font-size:11px;">${i}</span><button class="remove-btn" onclick="removeItemFromCategory('${cat}','${i}')">Remove</button>`;
+                    row.innerHTML='<span style="font-size:11px;">' + i + '</span><button class="remove-btn" onclick="removeItemFromCategory(\'' + cat + '\',\'' + i + '\')">Remove</button>';
                     wrap.appendChild(row);
                 });
                 itemsList.appendChild(wrap);
@@ -1483,59 +1434,59 @@
         }
 
         function updateCategoriesView() {
-            const view = document.getElementById('categories-view'); 
+            var view = document.getElementById('categories-view'); 
             view.innerHTML = '';
             if (Object.keys(AMENITIES_CATEGORIES).length === 0) { 
                 view.innerHTML = '<div style="color:#666;font-style:italic;font-size:11px;padding:3px;">No category tracks.</div>'; 
                 return; 
             }
-            Object.keys(AMENITIES_CATEGORIES).forEach(cat => {
-                const d = document.createElement('div'); 
+            Object.keys(AMENITIES_CATEGORIES).forEach(function(cat) {
+                var d = document.createElement('div'); 
                 d.className='category-item'; 
                 d.style.flexDirection='column'; 
                 d.style.alignItems='flex-start';
-                d.innerHTML=`<div style="font-weight:bold;color:#00cc00;">Header: ${cat}</div><div style="font-size:11px;color:#aaa;">Items: ${AMENITIES_CATEGORIES[cat].join(', ') || 'None'}</div>`;
+                d.innerHTML='<div style="font-weight:bold;color:#00cc00;">Header: ' + cat + '</div><div style="font-size:11px;color:#aaa;">Items: ' + (AMENITIES_CATEGORIES[cat].join(', ') || 'None') + '</div>';
                 view.appendChild(d);
             });
         }
 
         function addNewCategory() {
-            const el = document.getElementById('new-category'); 
-            const v = el.value.trim();
+            var el = document.getElementById('new-category'); 
+            var v = el.value.trim();
             if (v && !AMENITIES_CATEGORIES.hasOwnProperty(v)) { 
                 AMENITIES_CATEGORIES[v] = []; 
                 saveAndReload(); 
                 el.value=''; 
-                showMessage(`Header [${v}] Created`, 'success'); 
+                showMessage('Header [' + v + '] Created', 'success'); 
             }
         }
         
         function removeCategory(cat) { 
-            if (confirm(`Remove column heading "${cat}"?`)) { 
+            if (confirm('Remove column heading "' + cat + '"?')) { 
                 delete AMENITIES_CATEGORIES[cat]; 
                 saveAndReload(); 
-                showMessage(`Deleted branch`, 'error'); 
+                showMessage('Deleted branch', 'error'); 
             } 
         }
         
         function addItemToCategory() {
-            const cat = document.getElementById('category-select').value; 
-            const el = document.getElementById('new-item'); 
-            const v = el.value.trim();
+            var cat = document.getElementById('category-select').value; 
+            var el = document.getElementById('new-item'); 
+            var v = el.value.trim();
             if (cat && v && !AMENITIES_CATEGORIES[cat].includes(v)) { 
                 AMENITIES_CATEGORIES[cat].push(v); 
                 saveAndReload(); 
                 el.value=''; 
-                showMessage(`Element injected`, 'success'); 
+                showMessage('Element injected', 'success'); 
             }
         }
         
         function addBulkItemsToCategory() {
-            const cat = document.getElementById('category-select').value; 
-            const el = document.getElementById('bulk-items');
+            var cat = document.getElementById('category-select').value; 
+            var el = document.getElementById('bulk-items');
             if (cat && el.value.trim()) {
-                let count = 0; 
-                el.value.split('\n').map(i=>i.trim()).filter(i=>i.length>0).forEach(i => { 
+                var count = 0; 
+                el.value.split('\n').map(function(i) { return i.trim(); }).filter(function(i) { return i.length > 0; }).forEach(function(i) { 
                     if(!AMENITIES_CATEGORIES[cat].includes(i)) { 
                         AMENITIES_CATEGORIES[cat].push(i); 
                         count++; 
@@ -1543,18 +1494,18 @@
                 });
                 saveAndReload(); 
                 el.value=''; 
-                showMessage(`Added ${count} items`, 'success');
+                showMessage('Added ' + count + ' items', 'success');
             }
         }
         
         function removeItemFromCategory(cat, item) {
-            const idx = AMENITIES_CATEGORIES[cat].indexOf(item);
+            var idx = AMENITIES_CATEGORIES[cat].indexOf(item);
             if (idx > -1) { 
                 AMENITIES_CATEGORIES[cat].splice(idx, 1); 
                 if (selectedAmenities.includes(item)) selectedAmenities.splice(selectedAmenities.indexOf(item),1); 
                 saveAndReload(); 
                 updateSelectedItemsDisplay(); 
-                showMessage(`Element removed`, 'error'); 
+                showMessage('Element removed', 'error'); 
             }
         }
 
@@ -1571,17 +1522,17 @@
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify(AMENITIES_CATEGORIES)
                 })
-                .then(() => {
+                .then(function() {
                     showMessage('🚀 Cloud Synced!', 'success');
                     document.getElementById('search-input').placeholder = "Search items...";
                 })
-                .catch((err) => { console.error(err); showMessage('Network Error', 'error'); });
+                .catch(function(err) { console.error(err); showMessage('Network Error', 'error'); });
             }
         }
         
         function exportAmenities() {
-            const blob = new Blob([JSON.stringify(AMENITIES_CATEGORIES, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a'); 
+            var blob = new Blob([JSON.stringify(AMENITIES_CATEGORIES, null, 2)], { type: 'application/json' });
+            var a = document.createElement('a'); 
             a.href = URL.createObjectURL(blob); 
             a.download = 'horizontal_amenities_config.json'; 
             a.click();
@@ -1589,7 +1540,7 @@
         
         function importAmenities() {
             try { 
-                const parsed = JSON.parse(document.getElementById('import-amenities').value.trim());
+                var parsed = JSON.parse(document.getElementById('import-amenities').value.trim());
                 if (parsed && typeof parsed === 'object') { 
                     AMENITIES_CATEGORIES = parsed; 
                     saveAndReload(); 
