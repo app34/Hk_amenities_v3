@@ -1,6 +1,6 @@
 // ============================================
 // SERVICE WORKER - OBLU SELECT SANGELI
-// Version: v4.0.3 | Build: 2026-07-21
+// Version: v4.0.5 | Build: 2026-07-21
 // ============================================
 
 const CACHE_NAME = 'oblu-sangeli-hk-cache-v6'; // INCREMENTED VERSION
