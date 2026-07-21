@@ -1,9 +1,9 @@
 // ============================================
 // SERVICE WORKER - OBLU SELECT SANGELI
-// Version: v4.0.2 | Build: 2026-07-21
+// Version: v4.0.3 | Build: 2026-07-21
 // ============================================
 
-const CACHE_NAME = 'oblu-sangeli-hk-cache-v5'; // INCREMENTED VERSION
+const CACHE_NAME = 'oblu-sangeli-hk-cache-v6'; // INCREMENTED VERSION
 const CACHE_STAMP = Date.now().toString();
 
 const ASSETS = [
@@ -78,7 +78,7 @@ self.addEventListener('activate', (e) => {
 });
 
 // ============================================
-// FETCH EVENT - Network First with Cache Fallback
+// FETCH EVENT
 // ============================================
 self.addEventListener('fetch', (e) => {
   if (!e.request.url.startsWith(self.location.origin)) {

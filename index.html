@@ -350,7 +350,7 @@
     <div class="header">
         <div class="logo">🏝️ OBLU SELECT Sangeli</div>
         <div class="subtitle">Horizontal Matrix Sheet System</div>
-        <div class="version-badge">v4.0.2 | 2026-07-21</div>
+        <div class="version-badge">v4.0.3 | 2026-07-21</div>
         
         <!-- ============================================
         HEADER ACTIONS WITH DROPDOWN
@@ -563,9 +563,9 @@
         // ============================================
         // APP VERSION - UPDATE ON EVERY RELEASE
         // ============================================
-        const APP_VERSION = 'v4.0.2';
+        const APP_VERSION = 'v4.0.3';
         const BUILD_DATE = '2026-07-21';
-        const BUILD_TIME = '10:00';
+        const BUILD_TIME = '14:00';
 
         // ============================================
         // FORCE UPDATE - Clears cache if version changed
@@ -826,14 +826,19 @@
             console.log('📝 Loading suggestions...');
             const saved = localStorage.getItem(STORAGE_KEYS.NOTE_SUGGESTIONS);
             
-            if (saved) {
+            if (saved !== null && saved !== undefined) {
                 try {
                     const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
+                    if (Array.isArray(parsed)) {
                         noteSuggestions = parsed;
-                        console.log('✅ Loaded suggestions from localStorage:', noteSuggestions.length);
+                        console.log('✅ Loaded suggestions from localStorage:', noteSuggestions.length, 'items');
+                        
+                        // If saved array is empty, keep it empty (user removed all)
+                        if (noteSuggestions.length === 0) {
+                            console.log('📝 Suggestions are empty - user removed all');
+                        }
                     } else {
-                        console.log('⚠️ Saved suggestions empty, loading defaults');
+                        console.log('⚠️ Saved data is not an array, loading defaults');
                         setDefaultSuggestions();
                     }
                 } catch(e) {
@@ -841,6 +846,7 @@
                     setDefaultSuggestions();
                 }
             } else {
+                // Only load defaults if there's NO saved data at all
                 console.log('ℹ️ No saved suggestions found, loading defaults');
                 setDefaultSuggestions();
             }
@@ -865,7 +871,7 @@
         function saveNoteSuggestions() {
             try {
                 localStorage.setItem(STORAGE_KEYS.NOTE_SUGGESTIONS, JSON.stringify(noteSuggestions));
-                console.log('💾 Suggestions saved:', noteSuggestions.length);
+                console.log('💾 Suggestions saved:', noteSuggestions.length, 'items');
             } catch(e) {
                 console.error('❌ Failed to save suggestions:', e);
             }
@@ -878,7 +884,19 @@
             container.innerHTML = '';
             
             if (!noteSuggestions || noteSuggestions.length === 0) {
-                console.log('⚠️ No suggestions to render');
+                console.log('ℹ️ No suggestions to render');
+                // Show a message when empty
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.cssText = `
+                    color: #444444;
+                    font-size: 11px;
+                    padding: 6px;
+                    width: 100%;
+                    text-align: center;
+                    font-style: italic;
+                `;
+                emptyMsg.textContent = 'No suggestions. Add one below ➔';
+                container.appendChild(emptyMsg);
                 return;
             }
             
@@ -938,11 +956,13 @@
                 return;
             }
             
+            const removed = noteSuggestions[index];
             noteSuggestions.splice(index, 1);
-            saveNoteSuggestions();
+            saveNoteSuggestions(); // Save the empty array if all removed
             renderSuggestions();
             if (adminAuthenticated) renderAdminSuggestions();
-            showMessage('🗑️ Suggestion removed', 'error');
+            showMessage(`🗑️ Removed: "${removed}"`, 'error');
+            console.log('🗑️ Suggestion removed, remaining:', noteSuggestions.length);
         }
 
         function handleSuggestionKeyPress(e) {
@@ -959,7 +979,7 @@
             container.innerHTML = '';
             
             if (!noteSuggestions || noteSuggestions.length === 0) {
-                container.innerHTML = '<div style="color:#666;font-size:12px;padding:8px;">No suggestions available</div>';
+                container.innerHTML = '<div style="color:#666;font-size:12px;padding:8px;">No suggestions available. Add some above.</div>';
                 return;
             }
             
