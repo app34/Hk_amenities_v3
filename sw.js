@@ -3,7 +3,7 @@
 // Version: v4.0.5 | Build: 2026-07-21
 // ============================================
 
-const CACHE_NAME = 'oblu-sangeli-hk-cache-v6'; // INCREMENTED VERSION
+const CACHE_NAME = 'oblu-sangeli-hk-cache-v7'; // INCREMENTED VERSION
 const CACHE_STAMP = Date.now().toString();
 
 const ASSETS = [
