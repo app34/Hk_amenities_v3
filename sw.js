@@ -1,11 +1,11 @@
 // ============================================
 // SERVICE WORKER - OBLU SELECT SANGELI
-// Version: v5.0.0
+// Version: v5.0.1
 // ============================================
 
-const CACHE_NAME = 'oblu-sangeli-hk-cache-v8';
+var CACHE_NAME = 'oblu-sangeli-hk-cache-v9';
 
-const ASSETS = [
+var ASSETS = [
   '/Hk_amenities_v3/',
   '/Hk_amenities_v3/index.html',
   '/Hk_amenities_v3/manifest.json',
@@ -50,11 +50,12 @@ self.addEventListener('activate', function(e) {
   );
 });
 
-// Fetch
+// Fetch - Network first, fallback to cache
 self.addEventListener('fetch', function(e) {
   e.respondWith(
     fetch(e.request)
       .then(function(response) {
+        // Clone and cache
         var responseClone = response.clone();
         caches.open(CACHE_NAME).then(function(cache) {
           cache.put(e.request, responseClone);
