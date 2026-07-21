@@ -350,14 +350,14 @@
     <div class="header">
         <div class="logo">🏝️ OBLU SELECT Sangeli</div>
         <div class="subtitle">Horizontal Matrix Sheet System</div>
-        <div class="version-badge">v4.0.4 | 2026-07-21</div>
+        <div class="version-badge">v4.0.5 | 2026-07-21</div>
         
         <!-- ============================================
         HEADER ACTIONS WITH DROPDOWN
         ============================================ -->
         <div class="header-actions">
             <!-- Install Button -->
-            <button id="universal-install-btn" style="display:inline-block; background: #00cc00; color: #0a0a0a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 0 10px rgba(0,204,0,0.6);">
+            <button id="installBtn" style="background: #00cc00; color: #0a0a0a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 0 10px rgba(0,204,0,0.6);">
                 📥 Install App
             </button>
             
@@ -563,9 +563,9 @@
         // ============================================
         // APP VERSION - UPDATE ON EVERY RELEASE
         // ============================================
-        const APP_VERSION = 'v4.0.4';
+        const APP_VERSION = 'v4.0.5';
         const BUILD_DATE = '2026-07-21';
-        const BUILD_TIME = '16:00';
+        const BUILD_TIME = '17:00';
 
         // ============================================
         // FORCE UPDATE - Clears cache if version changed
@@ -634,62 +634,67 @@
         })();
 
         // ============================================
-        // PWA INSTALL - FIXED
+        // PWA INSTALL - PROPERLY FIXED
         // ============================================
         let deferredPrompt = null;
-        const installBtn = document.getElementById('universal-install-btn');
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+        const installBtn = document.getElementById('installBtn');
+        
+        console.log('🔧 Install button found:', installBtn ? 'YES' : 'NO');
 
-        // Hide install button if already installed
+        // Check if already installed
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
+        
         if (isStandalone) {
             installBtn.style.display = 'none';
-            console.log('✅ App is already installed (standalone mode)');
+            console.log('✅ App already installed - hiding install button');
         }
 
-        // iOS - show install instructions
+        // iOS detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
         if (isIOS && !isStandalone) {
             installBtn.textContent = '📱 Add to Home Screen';
             installBtn.onclick = function() {
-                alert("🍏 To install on iPhone / iOS:\n1. Tap the Safari 'Share' button (square icon with an up arrow at the bottom menu).\n2. Scroll down the panel and select 'Add to Home Screen'.");
+                alert("🍏 To install on iPhone / iOS:\n1. Tap the Safari 'Share' button (square icon with an up arrow at the bottom menu).\n2. Scroll down and select 'Add to Home Screen'.\n3. Tap 'Add' in the top right corner.");
             };
-            console.log('📱 iOS device detected - showing Add to Home Screen button');
+            console.log('📱 iOS device detected - showing instructions');
         }
 
-        // Android - beforeinstallprompt event
+        // Android - listen for beforeinstallprompt
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             installBtn.style.display = 'inline-block';
             installBtn.textContent = '📥 Install App';
-            installBtn.onclick = handleInstallClick;
-            console.log('📥 Install prompt available');
+            installBtn.onclick = function() {
+                console.log('📥 Install button clicked');
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('✅ User accepted the install prompt');
+                            installBtn.style.display = 'none';
+                            showMessage('🎉 App Installed!', 'success');
+                        } else {
+                            console.log('❌ User dismissed the install prompt');
+                            showMessage('Installation cancelled', 'error');
+                        }
+                        deferredPrompt = null;
+                    });
+                } else {
+                    showMessage('Use browser menu to install', 'success');
+                }
+            };
+            console.log('📥 Install prompt event received');
         });
 
         // App installed event
         window.addEventListener('appinstalled', () => {
             deferredPrompt = null;
             installBtn.style.display = 'none';
-            showMessage("🎉 App Installed Successfully!", "success");
+            showMessage('🎉 App Installed Successfully!', 'success');
             console.log('🎉 App installed successfully');
         });
-
-        // Handle install click
-        async function handleInstallClick() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                if (outcome === 'accepted') {
-                    installBtn.style.display = 'none';
-                    showMessage("🎉 App Installed!", "success");
-                } else {
-                    showMessage("Installation cancelled", "error");
-                }
-            } else {
-                showMessage("Use browser menu to install", "success");
-            }
-        }
 
         // ============================================
         // DROPDOWN FUNCTIONS
@@ -703,7 +708,6 @@
             arrow.classList.toggle('open');
         }
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const container = document.querySelector('.dropdown-container');
             if (container && !container.contains(event.target)) {
@@ -922,7 +926,7 @@
         }
 
         // ============================================
-        // NOTE SUGGESTIONS - FIXED PERSISTENCE
+        // NOTE SUGGESTIONS
         // ============================================
         function loadNoteSuggestions() {
             console.log('📝 Loading suggestions...');
@@ -1096,7 +1100,7 @@
         }
 
         // ============================================
-        // ORIGINAL APP FUNCTIONS (PRESERVED)
+        // ORIGINAL APP FUNCTIONS
         // ============================================
         function loadInitialData() {
             const localCache = localStorage.getItem(STORAGE_KEYS.MATRIX_CACHE);
