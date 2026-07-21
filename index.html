@@ -118,7 +118,6 @@
         .message.success { background-color: #004400; color: #00ff00; border: 1px solid #00ff00; }
         .message.error { background-color: #440000; color: #ff6666; border: 1px solid #ff6666; }
         
-        /* Dropdown */
         .header-actions { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
         .dropdown-container { position: relative; display: inline-block; }
         .dropdown-btn { background: #00cc00; color: #0a0a0a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 0 10px rgba(0,204,0,0.6); transition: all 0.3s ease; display: flex; align-items: center; gap: 6px; }
@@ -164,7 +163,7 @@
     <div class="header">
         <div class="logo">🏝️ OBLU SELECT Sangeli</div>
         <div class="subtitle">Horizontal Matrix Sheet System</div>
-        <div class="version-badge">v5.0.0 | 2026-07-21</div>
+        <div class="version-badge">v5.0.1 | 2026-07-21</div>
         
         <div class="header-actions">
             <!-- Install Button -->
@@ -344,14 +343,14 @@
         // ============================================
         // APP VERSION
         // ============================================
-        const APP_VERSION = 'v5.0.0';
-        const BUILD_DATE = '2026-07-21';
+        var APP_VERSION = 'v5.0.1';
+        var BUILD_DATE = '2026-07-21';
 
         // ============================================
         // FORCE UPDATE
         // ============================================
         (function forceUpdate() {
-            const storedVersion = localStorage.getItem('sangeli_app_version');
+            var storedVersion = localStorage.getItem('sangeli_app_version');
             if (storedVersion !== APP_VERSION) {
                 console.log('🔄 App update detected! Version:', APP_VERSION);
                 if ('caches' in window) {
@@ -372,16 +371,22 @@
         })();
 
         // ============================================
-        // PWA INSTALL - SIMPLE WORKING APPROACH
+        // PWA INSTALL - WITH DEBUGGING
         // ============================================
         var installBtn = document.getElementById('installBtn');
         var deferredPrompt = null;
+        
+        console.log('🔍 PWA Install Debug:');
+        console.log('📱 Standalone:', window.matchMedia('(display-mode: standalone)').matches);
+        console.log('📱 Navigator standalone:', window.navigator.standalone);
+        console.log('📱 iOS:', /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
         
         // Check if already installed
         var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         if (isStandalone) {
             installBtn.style.display = 'none';
-            console.log('✅ Already installed');
+            installBtn.textContent = '✅ Installed';
+            console.log('✅ App already installed - hiding button');
         }
         
         // iOS
@@ -389,8 +394,9 @@
         if (isIOS && !isStandalone) {
             installBtn.textContent = '📱 Add to Home Screen';
             installBtn.onclick = function() {
-                alert("To install:\n1. Tap Share (⬆️)\n2. Scroll down\n3. Tap 'Add to Home Screen'");
+                alert("To install on iPhone:\n1. Tap Share (⬆️)\n2. Scroll down\n3. Tap 'Add to Home Screen'\n4. Tap 'Add'");
             };
+            console.log('📱 iOS device - showing instructions');
         }
         
         // Android install prompt
@@ -400,23 +406,32 @@
             installBtn.style.display = 'inline-block';
             installBtn.textContent = '📥 Install App';
             installBtn.onclick = function() {
+                console.log('📥 Install button clicked');
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     deferredPrompt.userChoice.then(function(result) {
+                        console.log('📥 User choice:', result.outcome);
                         if (result.outcome === 'accepted') {
                             installBtn.style.display = 'none';
                             showMessage('🎉 App Installed!', 'success');
+                        } else {
+                            showMessage('Install cancelled', 'error');
                         }
                         deferredPrompt = null;
                     });
+                } else {
+                    showMessage('Use browser menu to install', 'success');
                 }
             };
-            console.log('📥 Install prompt ready');
+            console.log('📥 Install prompt received and ready');
         });
         
+        // App installed event
         window.addEventListener('appinstalled', function() {
+            deferredPrompt = null;
             installBtn.style.display = 'none';
-            showMessage('🎉 App Installed!', 'success');
+            showMessage('🎉 App Installed Successfully!', 'success');
+            console.log('✅ App installed event fired');
         });
 
         // ============================================
@@ -563,11 +578,14 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
                     .then(function(reg) {
-                        console.log('✅ Service Worker registered');
+                        console.log('✅ Service Worker registered successfully');
+                        console.log('✅ Scope:', reg.scope);
                     })
                     .catch(function(err) {
-                        console.log('❌ Service Worker failed:', err);
+                        console.log('❌ Service Worker registration failed:', err);
                     });
+            } else {
+                console.log('❌ Service Workers not supported');
             }
         }
 
